@@ -36,6 +36,7 @@ int insert_new_file(char ***files, size_t *files_capacity,
 
     return 0;
 }
+
 static int is_yaml_file(const char *file_name)
 {
     const char *ext = strrchr(file_name, '.');
@@ -48,6 +49,62 @@ static int build_path(char *buf, size_t buf_size,
     int n = snprintf(buf, buf_size, "%s/%s", dir_path, file_name);
     return (n > 0 && (size_t)n < buf_size) ? 0 : -1;
 }
+
+int retrieve_test_files(const char *dir_path, char ***out_files)
+{
+    if(!dir_path || !out_files) return -1;
+
+    DIR *net_test_dir = opendir(dir_path);
+    if(!net_test_dir)
+    {
+        perror("failed to open tests directory:");
+        return -1;
+    }
+
+    size_t files_capacity = 1; 
+    char **files = malloc(sizeof(char *));
+    if(!files)
+    {
+        perror("failed to allocate memory:");
+        closedir(net_test_dir);
+        return -1;
+    }
+
+    int str_idx = 0;
+    struct dirent *dir_entry;
+
+    while((dir_entry = readdir(net_test_dir)) != NULL)
+    {
+        const char *file_name = dir_entry->d_name;
+
+        if(!is_yaml_file(file_name))
+            continue;
+
+        size_t path_len = strlen(dir_path) + strlen(file_name) + 2;
+        char path[path_len];
+
+        if(build_path(path, path_len, dir_path, file_name) == -1)
+        {
+            free_files(files, str_idx);
+            closedir(net_test_dir);
+            return -1;
+        }
+
+        if(insert_new_file(&files, &files_capacity, path, str_idx) == -1)
+        {
+            free_files(files, str_idx);
+            closedir(net_test_dir);
+            return -1;
+        }
+
+        str_idx++;
+    }
+    closedir(net_test_dir);
+
+    *out_files = files;
+    return str_idx;
+}
+
 int main(int argc, char *argv[])
 {
     // Open every .yaml file inside _net_test
