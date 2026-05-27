@@ -1,6 +1,12 @@
 CC      := gcc
 CFLAGS  := -Wall -Wextra
 
+ifdef DEBUG 
+	CFLAGS += -g -O0
+else
+	CFLAGS += -O2
+endif 
+
 SRC_DIR := src
 OBJ_DIR := obj
 BIN_DIR := bin
