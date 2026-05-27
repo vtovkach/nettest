@@ -36,6 +36,18 @@ int insert_new_file(char ***files, size_t *files_capacity,
 
     return 0;
 }
+static int is_yaml_file(const char *file_name)
+{
+    const char *ext = strrchr(file_name, '.');
+    return ext && (strcmp(ext, ".yaml") == 0 || strcmp(ext, ".yml") == 0);
+}
+
+static int build_path(char *buf, size_t buf_size,
+                      const char *dir_path, const char *file_name)
+{
+    int n = snprintf(buf, buf_size, "%s/%s", dir_path, file_name);
+    return (n > 0 && (size_t)n < buf_size) ? 0 : -1;
+}
 int main(int argc, char *argv[])
 {
     // Open every .yaml file inside _net_test
