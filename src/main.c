@@ -57,7 +57,7 @@ int retrieve_test_files(const char *dir_path, char ***out_files)
     DIR *net_test_dir = opendir(dir_path);
     if(!net_test_dir)
     {
-        perror("failed to open tests directory:");
+        perror("Failed to open tests directory");
         return -1;
     }
 
@@ -65,7 +65,7 @@ int retrieve_test_files(const char *dir_path, char ***out_files)
     char **files = malloc(sizeof(char *));
     if(!files)
     {
-        perror("failed to allocate memory:");
+        perror("Failed to allocate memory");
         closedir(net_test_dir);
         return -1;
     }
@@ -119,7 +119,6 @@ int main(int argc, char *argv[])
 
     // TODO: 
     //  Enforce Max File and Dir Size
-    //  Fixed error messages 
 
     if(argc != 2)
     {
