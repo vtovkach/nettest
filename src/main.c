@@ -107,19 +107,6 @@ int retrieve_test_files(const char *dir_path, char ***out_files)
 
 int main(int argc, char *argv[])
 {
-    // Open every .yaml file inside _net_test
-    // Parse .yaml data into structs
-    //  - config
-    //  - target  
-    //  - test
-
-    // find and parse every .yaml file in _net_test/
-    // Create all necessary structures 
-    // Display status
-
-    // TODO: 
-    //  Enforce Max File and Dir Size
-
     if(argc != 2)
     {
         printf("main: incorrect args\n");
