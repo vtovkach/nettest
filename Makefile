@@ -27,7 +27,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run:
-	$(TARGET)
+	$(TARGET) _net_test
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
