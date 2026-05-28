@@ -132,8 +132,14 @@ int main(int argc, char *argv[])
     int num_files = retrieve_test_files(tests_path, &files); 
     if(num_files < 1)
     {
-        printf("Failed to open /_net_test\n");
+        printf("Failed to open \"%s\" directory\n", tests_path);
         return 1; 
+    }
+
+    // Verify output
+    for(int i = 0; i < num_files; i++)
+    {
+        printf("file: %s\n", files[i]);
     }
 
     return 0;
