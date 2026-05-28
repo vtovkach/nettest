@@ -122,12 +122,6 @@ int main(int argc, char *argv[])
         printf("Failed to open \"%s\" directory\n", tests_path);
         return 1; 
     }
-
-    // Verify output
-    for(int i = 0; i < num_files; i++)
-    {
-        printf("file: %s\n", files[i]);
-    }
-
+    
     return 0;
 }
