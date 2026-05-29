@@ -1,4 +1,5 @@
 #include "files.h"
+#include "config.h"
 #include <stdio.h>
 
 int main(int argc, char *argv[])
@@ -18,6 +19,11 @@ int main(int argc, char *argv[])
         printf("Failed to open \"%s\" directory\n", tests_path);
         return 1; 
     }
+
+    struct iso_test_node *iso_tests = NULL;
+    
+    // Check return value
+    parse_yaml_files(files, num_files, &iso_tests);
     
     return 0;
 }
