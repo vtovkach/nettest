@@ -1,5 +1,5 @@
-#ifndef _TARGET_
-#define _TARGET_
+#ifndef _CONFIG_
+#define _CONFIG_
 
 #include <stdint.h>
 #include <stddef.h>
@@ -40,5 +40,7 @@ struct iso_test_node
     struct test_case *test_cases;
     size_t test_cases_num; 
 };
+
+int parse_yaml_files(char **files, size_t files_num, struct iso_test_node *dest);
 
 #endif
