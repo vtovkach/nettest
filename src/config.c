@@ -1,3 +1,8 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <yaml.h>
+
+#include "config.h"
 
 int parse_yaml_files(char **files, size_t files_num, struct iso_test_node **dest)
 {
