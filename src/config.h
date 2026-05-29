@@ -41,6 +41,6 @@ struct iso_test_node
     size_t test_cases_num; 
 };
 
-int parse_yaml_files(char **files, size_t files_num, struct iso_test_node *dest);
+int parse_yaml_files(char **files, size_t files_num, struct iso_test_node **dest);
 
 #endif
