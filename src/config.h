@@ -23,7 +23,7 @@ struct target
     int protocol;
     int family;
     char ip_address[INET6_ADDRSTRLEN];
-    int port; 
+    uint16_t port; 
 };
 
 struct test_case
