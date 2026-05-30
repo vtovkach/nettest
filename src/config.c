@@ -6,6 +6,51 @@
 
 #include "config.h"
 
+/** YAML events to handle 
+ * 
+ * Document/Stream Events 
+ * YAML_STREAM_START_EVENT
+ * YAML_STREAM_END_EVENT **
+ * YAML_DOCUMENT_START_EVENT
+ * YAML_DOCUMENT_END_EVENT
+ * 
+ * YAML_MAPPING_START_EVENT
+ * YAML_MAPPING_END_EVENT
+ * YAML_SEQUENCE_START_EVENT
+ * YAML_SEQUENCE_END_EVENT
+ * YAML_SCALAR_EVENT
+ */
+
+#define KEY_MAX_SIZE 128
+
+typedef enum {
+    STATE_ROOT,
+    STATE_CONFIG,
+    STATE_TESTS,
+    STATE_TEST_CASE,
+    STATE_SEND,
+    STATE_EXPECT
+} parse_state_t;
+
+static const char *yaml_event_type_str(yaml_event_type_t type)
+{
+    switch (type)
+    {
+        case YAML_NO_EVENT: return "YAML_NO_EVENT";
+        case YAML_STREAM_START_EVENT: return "YAML_STREAM_START_EVENT";
+        case YAML_STREAM_END_EVENT: return "YAML_STREAM_END_EVENT";
+        case YAML_DOCUMENT_START_EVENT: return "YAML_DOCUMENT_START_EVENT";
+        case YAML_DOCUMENT_END_EVENT: return "YAML_DOCUMENT_END_EVENT";
+        case YAML_ALIAS_EVENT: return "YAML_ALIAS_EVENT";
+        case YAML_SCALAR_EVENT: return "YAML_SCALAR_EVENT";
+        case YAML_SEQUENCE_START_EVENT: return "YAML_SEQUENCE_START_EVENT";
+        case YAML_SEQUENCE_END_EVENT: return "YAML_SEQUENCE_END_EVENT";
+        case YAML_MAPPING_START_EVENT: return "YAML_MAPPING_START_EVENT";
+        case YAML_MAPPING_END_EVENT: return "YAML_MAPPING_END_EVENT";
+        default: return "UNKNOWN_EVENT";
+    }
+}
+
 static int parse_port(const char *str, uint16_t *dest_port)
 {
     if(!str || !dest_port) return -1;
@@ -102,7 +147,21 @@ static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t d
     }
 
     yaml_parser_t parser; 
+    if(!yaml_parser_initialize(&parser))
+    {
+        printf("[parse_file] yaml_parser_initialize failed");
+        fclose(yaml_file);
+        return -1;
+    }
     yaml_parser_set_input_file(&parser, yaml_file);
+
+    // Target
+    struct target target; 
+    
+    // Parser State 
+    char current_key[KEY_MAX_SIZE];
+    parse_state_t parse_state = STATE_ROOT;
+    bool expect_key = true;
 
     int stop = 0;
     yaml_event_t event; 
@@ -111,19 +170,63 @@ static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t d
         if(!yaml_parser_parse(&parser, &event))
             goto error;
 
-        /* Process events here */
-        // ... 
+        switch(event.type)
+        {
+            case YAML_STREAM_END_EVENT:
+                printf("YAML_STREAM_END_EVENT\n");
+                stop = 1;
+                break;
+            case YAML_MAPPING_START_EVENT:
+                printf("YAML_MAPPING_START_EVENT\n");
+                break; 
+            case YAML_MAPPING_END_EVENT:
+                printf("YAML_MAPPING_END_EVENT\n");
+                parse_state = STATE_ROOT;
+                break;
+            case YAML_SEQUENCE_START_EVENT:
+                printf("YAML_SEQUENCE_START_EVENT\n");
+                break;
+            case YAML_SEQUENCE_END_EVENT:
+                printf("YAML_SEQUENCE_END_EVENT\n");
+                break;
 
-        /* Is everything parsed? */
-        stop = (event.type == YAML_STREAM_END_EVENT);
+            case YAML_SCALAR_EVENT:
+                char *value = (char *)event.data.scalar.value;
+                printf("YAML_SCALAR_EVENT: %s\n", value);
+
+                switch(parse_state)
+                {
+                    case STATE_ROOT:
+                        if(strcmp(value, "config") == 0)
+                            parse_state = STATE_CONFIG;
+                        else if(strcmp(value, "tests"))
+                            parse_state = STATE_TEST_CASE;
+                        break; 
+
+                    case STATE_CONFIG:
+                        parse_config(value, current_key, &target, &expect_key);
+                        break; 
+
+                    case STATE_TESTS:
+                        break;
+                }
+                break;
+
+            default:
+                printf("%s\n", yaml_event_type_str(event.type));
+                break;
+        }
         yaml_event_delete(&event);
     }
 
     yaml_parser_delete(&parser);
+    fclose(yaml_file);
     return 0; 
 
     error:
     yaml_parser_delete(&parser);
+    fclose(yaml_file);
+    printf("[parse_file] yaml_parser_parse error\n");
     return -1;
 }
 
@@ -132,12 +235,6 @@ int parse_yaml_files(char **files, size_t files_num, struct iso_test_node **dest
     if(!files) 
     {
         printf("[parse_yaml_file] files is null\n");
-        return -1;
-    }
-
-    if(dest)
-    {
-        printf("[parse_yaml_file] dest != NULL; must be NULL\n");
         return -1;
     }
 
@@ -152,7 +249,7 @@ int parse_yaml_files(char **files, size_t files_num, struct iso_test_node **dest
     for(size_t i = 0; i < files_num; i++)
     {
         if(parse_file(files[i], nodes, nodes_count) < 0) 
-            continue;
+            return -1;
         nodes_count++;
     }
 
