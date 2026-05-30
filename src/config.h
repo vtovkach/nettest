@@ -4,11 +4,12 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
-#define PROTOCOL_TCP    1
-#define PROTOCOL_UDP    2
-#define IPV4            3
-#define IPV6            4
+#define PROTOCOL_TCP    SOCK_STREAM
+#define PROTOCOL_UDP    SOCK_DGRAM
+#define IPV4            AF_INET
+#define IPV6            AF_INET6
 
 enum test_case_type
 {
@@ -19,10 +20,10 @@ enum test_case_type
 
 struct target
 {
-    uint8_t protocol;
-    uint8_t family;
+    int protocol;
+    int family;
     char ip_address[INET6_ADDRSTRLEN];
-    uint16_t port; 
+    int port; 
 };
 
 struct test_case
