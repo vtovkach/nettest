@@ -23,13 +23,14 @@
 
 #define KEY_MAX_SIZE 128
 
-typedef enum {
+typedef enum 
+{
     STATE_ROOT,
     STATE_CONFIG,
     STATE_TESTS,
-    STATE_TEST_CASE,
-    STATE_SEND,
-    STATE_EXPECT
+    STATE_TEST,
+    STATE_STEPS,
+    STATE_TEST_CASE
 } parse_state_t;
 
 static const char *yaml_event_type_str(yaml_event_type_t type)
@@ -131,6 +132,11 @@ static int parse_config(const char *cur_scalar,
     return 0;
 }
 
+static int parse_test_case(void)
+{
+    return 0;
+}
+
 static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t dest_idx)
 {
     if(!file)
@@ -155,8 +161,8 @@ static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t d
     }
     yaml_parser_set_input_file(&parser, yaml_file);
 
-    // Target
-    struct target target; 
+    // Node 
+    struct iso_test_node cur_node; 
     
     // Parser State 
     char current_key[KEY_MAX_SIZE];
@@ -172,55 +178,75 @@ static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t d
 
         switch(event.type)
         {
-            case YAML_STREAM_END_EVENT:
-                printf("YAML_STREAM_END_EVENT\n");
-                stop = 1;
-                break;
             case YAML_MAPPING_START_EVENT:
+            {
                 printf("YAML_MAPPING_START_EVENT\n");
-                break; 
-            case YAML_MAPPING_END_EVENT:
-                printf("YAML_MAPPING_END_EVENT\n");
-                parse_state = STATE_ROOT;
+                if(parse_state == STATE_STEPS)
+                    parse_state = STATE_TEST_CASE;
                 break;
+            }
+            case YAML_MAPPING_END_EVENT:
+            {
+                printf("YAML_MAPPING_END_EVENT\n");
+                if(parse_state == STATE_CONFIG)
+                    parse_state = STATE_ROOT;
+                else if(parse_state == STATE_TEST_CASE)
+                    parse_state = STATE_STEPS;
+                else if(parse_state == STATE_TEST)
+                    parse_state = STATE_TESTS;
+                break;
+            }
             case YAML_SEQUENCE_START_EVENT:
+            {
                 printf("YAML_SEQUENCE_START_EVENT\n");
                 break;
+            }
             case YAML_SEQUENCE_END_EVENT:
+            {
                 printf("YAML_SEQUENCE_END_EVENT\n");
+                if(parse_state == STATE_STEPS)
+                    parse_state = STATE_TEST;
+                else if(parse_state == STATE_TESTS)
+                    parse_state = STATE_ROOT;
                 break;
-
+            }
             case YAML_SCALAR_EVENT:
+            {
                 char *value = (char *)event.data.scalar.value;
                 printf("YAML_SCALAR_EVENT: %s\n", value);
 
-                switch(parse_state)
-                {
-                    case STATE_ROOT:
-                        if(strcmp(value, "config") == 0)
-                            parse_state = STATE_CONFIG;
-                        else if(strcmp(value, "tests"))
-                            parse_state = STATE_TEST_CASE;
-                        break; 
-
-                    case STATE_CONFIG:
-                        parse_config(value, current_key, &target, &expect_key);
-                        break; 
-
-                    case STATE_TESTS:
-                        break;
-                }
+                if(parse_state == STATE_ROOT && (strcmp(value, "config") == 0))
+                    parse_state = STATE_CONFIG;
+                else if(parse_state == STATE_ROOT && (strcmp(value, "tests") == 0))
+                    parse_state = STATE_TESTS;
+                else if(parse_state == STATE_CONFIG)
+                    parse_config(value, current_key, &cur_node.target, &expect_key);
+                else if(parse_state == STATE_TESTS && (strcmp(value, "test") == 0))
+                    parse_state = STATE_TEST;
+                else if(parse_state == STATE_TEST && (strcmp(value, "steps") == 0))
+                    parse_state = STATE_STEPS;
+                else if(parse_state == STATE_TEST_CASE && ((strcmp(value, "send") == 0)) || (strcmp(value, "expect") == 0))
+                    parse_test_case();
+                break; 
+            }
+            case YAML_STREAM_END_EVENT:
+            {
+                printf("YAML_STREAM_END_EVENT\n");
+                stop = 1;
                 break;
-
+            }
             default:
+            {
                 printf("%s\n", yaml_event_type_str(event.type));
                 break;
+            }
         }
         yaml_event_delete(&event);
     }
 
     yaml_parser_delete(&parser);
     fclose(yaml_file);
+    memcpy(&arr_dest[dest_idx].target, &cur_node.target, sizeof(struct target));
     return 0; 
 
     error:
