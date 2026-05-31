@@ -12,14 +12,29 @@
 
 void assert_parse_yaml_files(struct iso_test_node *nodes, int nodes_num)
 {
-    for(int i = 0; i < nodes_num; i++)
-    {
-        struct iso_test_node cur_node = nodes[i];
-        assert(cur_node.target.protocol == PROTOCOL_UDP);
-        assert(cur_node.target.family == IPV4);
-        assert(strcmp(cur_node.target.ip_address, "127.0.0.1") == 0);
-        assert(cur_node.target.port == 10000);
-    }
+    struct iso_test_node cur_node = nodes[0];
+    assert(cur_node.target.protocol == PROTOCOL_UDP);
+    assert(cur_node.target.family == IPV4);
+    assert(strcmp(cur_node.target.ip_address, "127.0.0.1") == 0);
+    assert(cur_node.target.port == 10000);
+
+    cur_node = nodes[1];
+    assert(cur_node.target.protocol == PROTOCOL_TCP);
+    assert(cur_node.target.family == IPV4);
+    assert(strcmp(cur_node.target.ip_address, "127.0.0.1") == 0);
+    assert(cur_node.target.port == 10001);
+
+    cur_node = nodes[2];
+    assert(cur_node.target.protocol == PROTOCOL_UDP);
+    assert(cur_node.target.family == IPV6);
+    assert(strcmp(cur_node.target.ip_address, "::1") == 0);
+    assert(cur_node.target.port == 10003);
+
+    cur_node = nodes[3];
+    assert(cur_node.target.protocol == PROTOCOL_TCP);
+    assert(cur_node.target.family == IPV6);
+    assert(strcmp(cur_node.target.ip_address, "::2") == 0);
+    assert(cur_node.target.port == 5678);
 }
 
 void test_config(void)

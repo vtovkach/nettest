@@ -1,19 +1,19 @@
 config:
-  protocol: "udp" # udp or tcp
-  family: "ipv4" # ipv4 or ipv6
+  protocol: "tcp"
+  family: "ipv4"
   ip_address: "127.0.0.1"
-  port: "10000"
+  port: "10001"
 
 tests:
-  - name: "first connection"
+  - name: "echo short messages"
     steps:
-      - send: "Hello World"
-        expect: "Yo!"
+      - send: "ping"
+        expect: "pong"
 
-      - send: "Hello! How are you?"
-        expect: "Hi. I am fine!"
+      - send: "test"
+        expect: "ok"
 
-  - name: "connection two"
+  - name: "close message"
     steps:
-      - send: "Good bye!"
-        expect: "Bye!"
+      - send: "bye"
+        expect: "goodbye"

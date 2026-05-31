@@ -1,19 +1,22 @@
 config:
-  protocol: "udp" # udp or tcp
-  family: "ipv4" # ipv4 or ipv6
-  ip_address: "127.0.0.1"
-  port: "10000"
+  protocol: "tcp"
+  family: "ipv6"
+  ip_address: "::2"
+  port: "5678"
 
 tests:
-  - name: "first connection"
+  - name: "multiple step conversation"
     steps:
-      - send: "Hello World"
-        expect: "Yo!"
+      - send: "connect"
+        expect: "connected"
 
-      - send: "Hello! How are you?"
-        expect: "Hi. I am fine!"
+      - send: "login user"
+        expect: "login ok"
 
-  - name: "connection two"
+      - send: "quit"
+        expect: "disconnected"
+
+  - name: "second session"
     steps:
-      - send: "Good bye!"
-        expect: "Bye!"
+      - send: "health"
+        expect: "healthy"
