@@ -1,11 +1,11 @@
 CC      := gcc
 CFLAGS  := -Wall -Wextra
 
-ifdef DEBUG 
+ifdef DEBUG
 	CFLAGS += -g -O0
 else
 	CFLAGS += -O2
-endif 
+endif
 
 SRC_DIR := src
 OBJ_DIR := obj
@@ -24,14 +24,16 @@ $(TARGET): $(OBJS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@ 
+	$(CC) $(CFLAGS) -c $< -o $@
 
-run:
-	$(TARGET) _net_test
+run: $(TARGET)
+	./$(TARGET) _net_test
+
+test:
+	$(MAKE) -C test run
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	$(MAKE) -C test clean
 
-rebuild: clean all
-
-.PHONY: all clean rebuild
+.PHONY: all run test clean
