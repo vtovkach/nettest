@@ -38,14 +38,16 @@ struct test_case
 struct test_node
 {
     struct test_case *test_cases;
-    size_t test_cases_num; 
+    size_t test_cases_capacity; 
+    size_t tests_count; 
 };
 
 struct test_file 
 {
     struct target target;
     struct test_node *nodes; 
-    size_t nodes_num;
+    size_t nodes_capacity;
+    size_t nodes_count; 
 };
 
 int parse_yaml_files(char **files, size_t files_num, struct test_file **dest);

@@ -10,9 +10,9 @@
 
 // Free allocations later
 
-void assert_parse_yaml_files(struct test_file *t_file, int nodes_num)
+void assert_parse_yaml_files(struct test_file *t_file, int nodes_capacity)
 {
-    (void)nodes_num;
+    (void)nodes_capacity;
     struct test_file cur_node = t_file[0];
     assert(cur_node.target.protocol == PROTOCOL_UDP);
     assert(cur_node.target.family == IPV4);
