@@ -35,13 +35,19 @@ struct test_case
     size_t expected_size;
 };
 
-struct iso_test_node
+struct test_node
 {
-    struct target target; 
     struct test_case *test_cases;
     size_t test_cases_num; 
 };
 
-int parse_yaml_files(char **files, size_t files_num, struct iso_test_node **dest);
+struct test_file 
+{
+    struct target target;
+    struct test_node *nodes; 
+    size_t nodes_num;
+};
+
+int parse_yaml_files(char **files, size_t files_num, struct test_file **dest);
 
 #endif

@@ -137,7 +137,7 @@ static int parse_test_case(void)
     return 0;
 }
 
-static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t dest_idx)
+static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_idx)
 {
     if(!file)
     {
@@ -162,7 +162,7 @@ static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t d
     yaml_parser_set_input_file(&parser, yaml_file);
 
     // Node 
-    struct iso_test_node cur_node; 
+    struct test_file test_file; 
     
     // Parser State 
     char current_key[KEY_MAX_SIZE];
@@ -217,10 +217,10 @@ static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t d
 
                 if(parse_state == STATE_ROOT && (strcmp(value, "config") == 0))
                     parse_state = STATE_CONFIG;
+                else if(parse_state == STATE_CONFIG)
+                    parse_config(value, current_key, &test_file.target, &expect_key);
                 else if(parse_state == STATE_ROOT && (strcmp(value, "tests") == 0))
                     parse_state = STATE_TESTS;
-                else if(parse_state == STATE_CONFIG)
-                    parse_config(value, current_key, &cur_node.target, &expect_key);
                 else if(parse_state == STATE_TESTS && (strcmp(value, "test") == 0))
                     parse_state = STATE_TEST;
                 else if(parse_state == STATE_TEST && (strcmp(value, "steps") == 0))
@@ -246,7 +246,7 @@ static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t d
 
     yaml_parser_delete(&parser);
     fclose(yaml_file);
-    memcpy(&arr_dest[dest_idx].target, &cur_node.target, sizeof(struct target));
+    memcpy(&arr_dest[dest_idx].target, &test_file.target, sizeof(struct target));
     return 0; 
 
     error:
@@ -256,7 +256,7 @@ static int parse_file(const char *file, struct iso_test_node *arr_dest, size_t d
     return -1;
 }
 
-int parse_yaml_files(char **files, size_t files_num, struct iso_test_node **dest)
+int parse_yaml_files(char **files, size_t files_num, struct test_file **dest)
 {
     if(!files) 
     {
@@ -264,7 +264,7 @@ int parse_yaml_files(char **files, size_t files_num, struct iso_test_node **dest
         return -1;
     }
 
-    struct iso_test_node *nodes = malloc(sizeof(struct iso_test_node) * files_num);
+    struct test_file *t_file = malloc(sizeof(struct test_file) * files_num);
     if(!dest)
     {
         perror("[parse_yaml_file] malloc failure:");
@@ -274,11 +274,11 @@ int parse_yaml_files(char **files, size_t files_num, struct iso_test_node **dest
     size_t nodes_count = 0;
     for(size_t i = 0; i < files_num; i++)
     {
-        if(parse_file(files[i], nodes, nodes_count) < 0) 
+        if(parse_file(files[i], t_file, nodes_count) < 0) 
             return -1;
         nodes_count++;
     }
 
-    *dest = nodes;
+    *dest = t_file;
     return nodes_count;
 }

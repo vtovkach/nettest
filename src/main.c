@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         return 1; 
     }
 
-    struct iso_test_node *iso_tests = NULL;
+    struct test_file *iso_tests = NULL;
     
     // Check return value
     parse_yaml_files(files, num_files, &iso_tests);
