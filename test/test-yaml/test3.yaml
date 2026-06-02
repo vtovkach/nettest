@@ -1,18 +1,36 @@
 config:
   protocol: "udp"
-  family: "ipv6"
-  ip_address: "::1"
-  port: "10003"
+  family: "ipv4"
+  ip_address: "127.0.0.1"
+  port: "10000"
 
 tests:
   - test:
       steps:
+        - send: "Hello World"
+          expect: "Yo!"
+        - send: "Hello! How are you?"
+          expect: "Hi. I am fine!"
+        - send: "[in] gg"
+          expect: "[out] gg"
+        - send: "Good bye!"
+          expect: "Bye!"
+
+  - test:
+      steps:
+        - send: "Good bye!"
+          expect: "Bye!"
+        - send: "ping"
+          expect: "pong"
+
+  - test:
+      steps:
         - send: "connect"
           expect: "connected"
-
         - send: "login user"
           expect: "login ok"
-
+        - send: "send packet"
+          expect: "packet received"
         - send: "quit"
           expect: "disconnected"
 
@@ -20,3 +38,7 @@ tests:
       steps:
         - send: "health"
           expect: "healthy"
+        - send: "status"
+          expect: "ok"
+        - send: "reset"
+          expect: "reset ok"
