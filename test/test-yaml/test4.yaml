@@ -5,18 +5,18 @@ config:
   port: "5678"
 
 tests:
-  - name: "multiple step conversation"
-    steps:
-      - send: "connect"
-        expect: "connected"
+  - test:
+      steps:
+        - send: "connect"
+          expect: "connected"
 
-      - send: "login user"
-        expect: "login ok"
+        - send: "login user"
+          expect: "login ok"
 
-      - send: "quit"
-        expect: "disconnected"
+        - send: "quit"
+          expect: "disconnected"
 
-  - name: "second session"
-    steps:
-      - send: "health"
-        expect: "healthy"
+  - test:
+      steps:
+        - send: "health"
+          expect: "healthy"

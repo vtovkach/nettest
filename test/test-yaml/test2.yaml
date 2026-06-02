@@ -5,15 +5,15 @@ config:
   port: "10001"
 
 tests:
-  - name: "echo short messages"
-    steps:
-      - send: "ping"
-        expect: "pong"
+  - test:
+      steps:
+        - send: "ping"
+          expect: "pong"
 
-      - send: "test"
-        expect: "ok"
+        - send: "test"
+          expect: "ok"
 
-  - name: "close message"
-    steps:
-      - send: "bye"
-        expect: "goodbye"
+  - test:
+      steps:
+        - send: "bye"
+          expect: "goodbye"
