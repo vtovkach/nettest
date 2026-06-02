@@ -22,8 +22,8 @@
  */
 
 #define KEY_MAX_SIZE 128
-#define INIT_NODES_NUM 8
-#define INIT_TEST_CASES_NUM 8
+#define INIT_NODES_NUM 1
+#define INIT_TEST_CASES_NUM 1
 
 typedef enum 
 {
@@ -147,7 +147,7 @@ static int parse_test_case(char *cur_key, const char *cur_scalar, bool *isKey, s
         void *generic_data = malloc(data_size + 1);
         if(!generic_data)
         {
-            // 
+            perror("[parse_test_case] malloc failure:");
             return -1;
         } 
 
@@ -195,7 +195,7 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
     yaml_parser_set_input_file(&parser, yaml_file);
 
     // Node 
-    struct test_file test_file; 
+    struct test_file test_file = {}; 
     
     // Parser State 
     char current_key[KEY_MAX_SIZE];
@@ -205,9 +205,6 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
     test_file.nodes = NULL;   
     size_t cur_node_idx = 0;
     size_t cur_test_idx = 0;
-
-
-    struct test_case t_case = {}; 
 
     int stop = 0;
     yaml_event_t event; 
@@ -234,6 +231,7 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
                 {
                     parse_state = STATE_STEPS;
                     cur_test_idx++; 
+                    test_file.nodes[cur_node_idx].tests_count++;
                 }
                 else if(parse_state == STATE_TEST)
                     parse_state = STATE_TESTS;
@@ -251,6 +249,7 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
                 {
                     parse_state = STATE_TEST;
                     cur_node_idx++; 
+                    test_file.nodes_count++; 
                 }
                 else if(parse_state == STATE_TESTS)
                     parse_state = STATE_ROOT;
@@ -279,26 +278,43 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
                     }
                     else if(cur_node_idx >= test_file.nodes_capacity)
                     {
-                        // resize it 
+                        size_t new_capacity = test_file.nodes_capacity * 2; 
+                        struct test_node *temp = realloc(test_file.nodes, new_capacity * sizeof(struct test_node));
+                        if(!temp)
+                        {
+                            perror("[parse_file] realloc failure:");
+                            return -1;
+                        }
+                        test_file.nodes = temp;
+                        test_file.nodes_capacity = new_capacity;
                     }
                 }
                 else if(parse_state == STATE_TEST && (strcmp(value, "steps") == 0))
                 {
                     parse_state = STATE_STEPS;
                     cur_test_idx = 0;
-                    
                     if(test_file.nodes[cur_node_idx].test_cases == NULL)
                     {
                         test_file.nodes[cur_node_idx].test_cases = calloc(INIT_TEST_CASES_NUM, sizeof(struct test_case));
                         test_file.nodes[cur_node_idx].test_cases_capacity = INIT_TEST_CASES_NUM;
                     }
-                    else if(cur_test_idx >= test_file.nodes[cur_node_idx].test_cases_capacity)
-                    {
-                        // resize it 
-                    }
                 }
                 else if(parse_state == STATE_TEST_CASE)
+                {
+                    if(cur_test_idx >= test_file.nodes[cur_node_idx].test_cases_capacity)
+                    {
+                        size_t new_capacity = test_file.nodes[cur_node_idx].test_cases_capacity * 2;
+                        struct test_case *temp = realloc(test_file.nodes[cur_node_idx].test_cases, sizeof(struct test_case) * new_capacity);
+                        if(!temp)
+                        {
+                            perror("[parse_file] realloc failure:");
+                            return -1;
+                        }
+                        test_file.nodes[cur_node_idx].test_cases = temp;
+                        test_file.nodes[cur_node_idx].test_cases_capacity = new_capacity;
+                    }
                     parse_test_case(current_key, value, &expect_key, &test_file.nodes[cur_node_idx].test_cases[cur_test_idx]);
+                }
                 break; 
             }
             case YAML_STREAM_END_EVENT:
@@ -318,7 +334,6 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
 
     yaml_parser_delete(&parser);
     fclose(yaml_file);
-    //memcpy(&arr_dest[dest_idx].target, &test_file.target, sizeof(struct target));
 
     memcpy(&arr_dest[dest_idx], &test_file, sizeof(struct test_file));
 
