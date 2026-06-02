@@ -22,8 +22,8 @@
  */
 
 #define KEY_MAX_SIZE 128
-#define INIT_NODES_NUM 4
-#define INIT_TEST_CASES_NUM 4
+#define INIT_NODES_NUM 8
+#define INIT_TEST_CASES_NUM 8
 
 typedef enum 
 {
@@ -152,6 +152,7 @@ static int parse_test_case(char *cur_key, const char *cur_scalar, bool *isKey, s
         } 
 
         memcpy(generic_data, cur_scalar, data_size);
+        ((char *)generic_data)[data_size] = '\0';
 
         if(strcmp(cur_key, "send") == 0)
         {
@@ -230,7 +231,10 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
                 if(parse_state == STATE_CONFIG)
                     parse_state = STATE_ROOT;
                 else if(parse_state == STATE_TEST_CASE)
+                {
                     parse_state = STATE_STEPS;
+                    cur_test_idx++; 
+                }
                 else if(parse_state == STATE_TEST)
                     parse_state = STATE_TESTS;
                 break;
@@ -244,7 +248,10 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
             {
                 printf("YAML_SEQUENCE_END_EVENT\n");
                 if(parse_state == STATE_STEPS)
+                {
                     parse_state = STATE_TEST;
+                    cur_node_idx++; 
+                }
                 else if(parse_state == STATE_TESTS)
                     parse_state = STATE_ROOT;
                 break;
@@ -278,8 +285,9 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
                 else if(parse_state == STATE_TEST && (strcmp(value, "steps") == 0))
                 {
                     parse_state = STATE_STEPS;
+                    cur_test_idx = 0;
                     
-                    if(test_file.nodes[cur_node_idx].test_cases = NULL)
+                    if(test_file.nodes[cur_node_idx].test_cases == NULL)
                     {
                         test_file.nodes[cur_node_idx].test_cases = calloc(INIT_TEST_CASES_NUM, sizeof(struct test_case));
                         test_file.nodes[cur_node_idx].test_cases_capacity = INIT_TEST_CASES_NUM;
@@ -289,8 +297,8 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
                         // resize it 
                     }
                 }
-                else if(parse_state == STATE_TEST_CASE && ((strcmp(value, "send") == 0)) || (strcmp(value, "expect") == 0))
-                    parse_test_case(current_key, value, &expect_key, &t_case);
+                else if(parse_state == STATE_TEST_CASE)
+                    parse_test_case(current_key, value, &expect_key, &test_file.nodes[cur_node_idx].test_cases[cur_test_idx]);
                 break; 
             }
             case YAML_STREAM_END_EVENT:
@@ -310,7 +318,10 @@ static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_
 
     yaml_parser_delete(&parser);
     fclose(yaml_file);
-    memcpy(&arr_dest[dest_idx].target, &test_file.target, sizeof(struct target));
+    //memcpy(&arr_dest[dest_idx].target, &test_file.target, sizeof(struct target));
+
+    memcpy(&arr_dest[dest_idx], &test_file, sizeof(struct test_file));
+
     return 0; 
 
     error:
