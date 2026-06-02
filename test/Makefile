@@ -7,7 +7,7 @@ BUILD_DIR := build
 BIN_DIR := bin
 TEST_TARGET := $(BIN_DIR)/test_runner
 
-CFLAGS := -Wall -Wextra -g -I$(SRC_DIR)
+CFLAGS := -Wall -Wextra -g -I$(SRC_DIR) -O0
 LDFLAGS := -lyaml
 
 SRCS := $(wildcard $(SRC_DIR)/*.c)
