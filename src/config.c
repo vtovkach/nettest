@@ -6,21 +6,6 @@
 
 #include "config.h"
 
-/** YAML events to handle 
- * 
- * Document/Stream Events 
- * YAML_STREAM_START_EVENT
- * YAML_STREAM_END_EVENT **
- * YAML_DOCUMENT_START_EVENT
- * YAML_DOCUMENT_END_EVENT
- * 
- * YAML_MAPPING_START_EVENT
- * YAML_MAPPING_END_EVENT
- * YAML_SEQUENCE_START_EVENT
- * YAML_SEQUENCE_END_EVENT
- * YAML_SCALAR_EVENT
- */
-
 #define KEY_MAX_SIZE 128
 #define INIT_NODES_NUM 1
 #define INIT_TEST_CASES_NUM 1
@@ -77,7 +62,8 @@ static int parse_config(const char *cur_scalar,
 {
     if(*isKey == true)
     {
-        strcpy(cur_key, cur_scalar); // cur_scalar is guaranteed to be <KEY_MAX_SIZE 
+        // cur_scalar is guaranteed to be <KEY_MAX_SIZE 
+        strcpy(cur_key, cur_scalar);
         *isKey = false;
     }
     else
@@ -102,7 +88,10 @@ static int parse_config(const char *cur_scalar,
                 target->family = IPV6;
             else 
             {
-                printf("[parse_config] Invalid family. (ipv4 or ipv6). Cur Scalar: %s\n", cur_scalar);
+                printf(
+                    "[parse_config] Invalid family.\
+                     (ipv4 or ipv6). Cur Scalar: %s\n", 
+                    cur_scalar);
                 return -1;
             }
         }
@@ -134,7 +123,8 @@ static int parse_config(const char *cur_scalar,
     return 0;
 }
 
-static int parse_test_case(char *cur_key, const char *cur_scalar, bool *isKey, struct test_case *dest)
+static int parse_test_case(char *cur_key, const char *cur_scalar, 
+                            bool *isKey, struct test_case *dest)
 {
     if(*isKey)
     {
@@ -263,7 +253,10 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
         else if(*cur_node_idx >= test_file->nodes_capacity)
         {
             size_t new_capacity = test_file->nodes_capacity * 2; 
-            struct test_node *temp = realloc(test_file->nodes, new_capacity * sizeof(struct test_node));
+            struct test_node *temp = realloc(
+                test_file->nodes, 
+                new_capacity * sizeof(struct test_node)
+            );
             if(!temp)
             {
                 perror("[parse_file] realloc failure:");
@@ -280,7 +273,10 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
         *cur_test_idx = 0;
         if(test_file->nodes[*cur_node_idx].test_cases == NULL)
         {
-            test_file->nodes[*cur_node_idx].test_cases = calloc(INIT_TEST_CASES_NUM, sizeof(struct test_case));
+            test_file->nodes[*cur_node_idx].test_cases = calloc(
+                INIT_TEST_CASES_NUM, 
+                sizeof(struct test_case)
+            );
             test_file->nodes[*cur_node_idx].test_cases_capacity = INIT_TEST_CASES_NUM;
         }
     }
@@ -289,7 +285,10 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
         if(*cur_test_idx >= test_file->nodes[*cur_node_idx].test_cases_capacity)
         {
             size_t new_capacity = test_file->nodes[*cur_node_idx].test_cases_capacity * 2;
-            struct test_case *temp = realloc(test_file->nodes[*cur_node_idx].test_cases, sizeof(struct test_case) * new_capacity);
+            struct test_case *temp = realloc(
+                test_file->nodes[*cur_node_idx].test_cases, 
+                sizeof(struct test_case) * new_capacity
+            );
             if(!temp)
             {
                 perror("[parse_file] realloc failure:");
@@ -299,7 +298,12 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
             test_file->nodes[*cur_node_idx].test_cases_capacity = new_capacity;
         }
 
-        parse_test_case(current_key, value, isKey, &test_file->nodes[*cur_node_idx].test_cases[*cur_test_idx]);
+        parse_test_case(
+            current_key, 
+            value, 
+            isKey, 
+            &test_file->nodes[*cur_node_idx].test_cases[*cur_test_idx]
+        );
     }
     
     return 0;
@@ -316,7 +320,12 @@ static int handle_yaml_event(yaml_event_t *event, parse_state_t *parse_state,
             return mapping_start(parse_state);
     
         case YAML_MAPPING_END_EVENT:
-            return mapping_end(parse_state, test_file, cur_test_idx, cur_node_idx);
+            return mapping_end(
+                parse_state, 
+                test_file, 
+                cur_test_idx, 
+                cur_node_idx
+            );
             
         case YAML_SEQUENCE_START_EVENT:
             return sequence_start();
@@ -325,7 +334,15 @@ static int handle_yaml_event(yaml_event_t *event, parse_state_t *parse_state,
             return sequence_end(parse_state, test_file, cur_node_idx);
 
         case YAML_SCALAR_EVENT:
-            return scalar_event(event, parse_state, current_key, test_file, isKey, cur_node_idx, cur_test_idx);
+            return scalar_event(
+                event, 
+                parse_state, 
+                current_key, 
+                test_file, 
+                isKey, 
+                cur_node_idx, 
+                cur_test_idx
+            );
         
         case YAML_STREAM_END_EVENT:
             printf("YAML_STREAM_END_EVENT\n");
@@ -338,7 +355,8 @@ static int handle_yaml_event(yaml_event_t *event, parse_state_t *parse_state,
     }
 }
 
-static int parse_file(const char *file, struct test_file *arr_dest, size_t dest_idx)
+static int parse_file(const char *file, struct test_file *arr_dest, 
+                        size_t dest_idx)
 {
     FILE *yaml_file = NULL;
     yaml_parser_t parser;
