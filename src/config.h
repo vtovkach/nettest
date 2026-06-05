@@ -11,6 +11,12 @@
 #define IPV4            AF_INET
 #define IPV6            AF_INET6
 
+#ifdef DEBUG
+# define DBG_PRINT(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
+#else
+# define DBG_PRINT(fmt, ...) ((void)0)
+#endif
+
 enum test_case_type
 {
     BIN,

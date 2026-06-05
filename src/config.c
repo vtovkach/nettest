@@ -162,7 +162,7 @@ static int parse_test_case(char *cur_key, const char *cur_scalar,
 
 static int mapping_start(parse_state_t *parse_state)
 {
-    printf("YAML_MAPPING_START_EVENT\n");
+    DBG_PRINT("YAML_MAPPING_START_EVENT\n");
 
     if(*parse_state == STATE_STEPS)
     {
@@ -175,7 +175,7 @@ static int mapping_start(parse_state_t *parse_state)
 static int mapping_end(parse_state_t *parse_state, struct test_file *t_file, 
                        size_t *cur_test_idx, size_t *cur_node_idx)
 {
-    printf("YAML_MAPPING_END_EVENT\n");
+    DBG_PRINT("YAML_MAPPING_END_EVENT\n");
 
     if(*parse_state == STATE_CONFIG)
     {
@@ -197,13 +197,13 @@ static int mapping_end(parse_state_t *parse_state, struct test_file *t_file,
 
 static int sequence_start(void)
 {
-    printf("YAML_SEQUENCE_START_EVENT\n");
+    DBG_PRINT("YAML_SEQUENCE_START_EVENT\n");
     return 0;
 }
 static int sequence_end(parse_state_t *parse_state, 
                         struct test_file *t_file, size_t *cur_node_idx)
 {
-    printf("YAML_SEQUENCE_END_EVENT\n");
+    DBG_PRINT("YAML_SEQUENCE_END_EVENT\n");
 
     if(*parse_state == STATE_STEPS)
     {
@@ -225,7 +225,7 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
                         size_t *cur_test_idx)
 {
     char *value = (char *)event->data.scalar.value;
-    printf("YAML_SCALAR_EVENT: %s\n", value);
+    DBG_PRINT("YAML_SCALAR_EVENT: %s\n", value);
 
     if(*parse_state == STATE_ROOT && (strcmp(value, "config") == 0))
     {
@@ -316,6 +316,23 @@ static int handle_yaml_event(yaml_event_t *event, parse_state_t *parse_state,
 {
     switch(event->type)
     {
+        case YAML_STREAM_START_EVENT:
+            DBG_PRINT("YAML_STREAM_START_EVENT\n");
+            return 0;
+        
+        case YAML_STREAM_END_EVENT:
+            DBG_PRINT("YAML_STREAM_END_EVENT\n");
+            *stop = 1;
+            return 0;
+        
+        case YAML_DOCUMENT_START_EVENT:
+            DBG_PRINT("YAML_DOCUMENT_START_EVENT\n");
+            return 0;
+
+        case YAML_DOCUMENT_END_EVENT:
+            DBG_PRINT("YAML_DOCUMENT_END_EVENT\n");
+            return 0;
+
         case YAML_MAPPING_START_EVENT:
             return mapping_start(parse_state);
     
@@ -343,15 +360,13 @@ static int handle_yaml_event(yaml_event_t *event, parse_state_t *parse_state,
                 cur_node_idx, 
                 cur_test_idx
             );
-        
-        case YAML_STREAM_END_EVENT:
-            printf("YAML_STREAM_END_EVENT\n");
-            *stop = 1;
-            return 0;
 
         default:
-            printf("%s\n", yaml_event_type_str(event->type));
-            return 0;
+            fprintf(
+                stderr, "Unsupported yaml event: %s\n", 
+                yaml_event_type_str(event->type)
+            );
+            return -1;
     }
 }
 
