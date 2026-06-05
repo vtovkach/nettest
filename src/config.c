@@ -215,7 +215,12 @@ static int sequence_end(parse_state_t *parse_state,
     {
         *parse_state = STATE_ROOT;
     }
-    
+    else 
+    {
+        printf("[sequence_event] unsupported event case");
+        return -1;
+    }
+
     return 0;
 }
 
@@ -259,7 +264,7 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
             );
             if(!temp)
             {
-                perror("[parse_file] realloc failure:");
+                perror("[scalar_event] realloc failure:");
                 return -1;
             }
             test_file->nodes = temp;
@@ -291,7 +296,7 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
             );
             if(!temp)
             {
-                perror("[parse_file] realloc failure:");
+                perror("[scalar_event] realloc failure:");
                 return -1;
             }
             test_file->nodes[*cur_node_idx].test_cases = temp;
@@ -304,6 +309,11 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
             isKey, 
             &test_file->nodes[*cur_node_idx].test_cases[*cur_test_idx]
         );
+    }
+    else
+    {
+        printf("[scalar_event] unsupported event");
+        return -1;
     }
     
     return 0;
