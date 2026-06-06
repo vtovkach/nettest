@@ -21,9 +21,18 @@ int main(int argc, char *argv[])
     }
 
     struct test_file *iso_tests = NULL;
-    
+
+    int num_parsed_files = parse_yaml_files(files, num_files, &iso_tests);
     // Check return value
-    parse_yaml_files(files, num_files, &iso_tests);
-    
+    if(num_parsed_files == -1)
+    {
+        printf("Failed to parse yaml files!\n");
+        free_files(files, num_files);
+        return 1;
+    }
+
+    // Deallocate files strings
+    free_files(files, num_files);
+    free_parsed_data(iso_tests, num_parsed_files);
     return 0;
 }
