@@ -20,6 +20,33 @@ typedef enum
     STATE_TEST_CASE
 } parse_state_t;
 
+/*-----------------------------------------------*/
+/* Deallocate memory for parsed data             */
+/*-----------------------------------------------*/
+void free_parsed_data(struct test_file *files, size_t files_count)
+{
+    if (!files) return;
+
+    for (size_t i = 0; i < files_count; i++)
+    {
+        for (size_t j = 0; j < files[i].nodes_count; j++)
+        {
+            for (size_t k = 0; k < files[i].nodes[j].tests_count; k++)
+            {
+                free(files[i].nodes[j].test_cases[k].test_data);
+                free(files[i].nodes[j].test_cases[k].expected_output);
+            }
+            free(files[i].nodes[j].test_cases);
+        }
+        free(files[i].nodes);
+    }
+    free(files);
+}
+
+
+/*-----------------------------------------------*/
+/* Local helper functions                        */
+/*-----------------------------------------------*/
 static const char *yaml_event_type_str(yaml_event_type_t type)
 {
     switch (type)

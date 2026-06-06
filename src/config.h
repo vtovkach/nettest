@@ -58,4 +58,6 @@ struct test_file
 
 int parse_yaml_files(char **files, size_t files_num, struct test_file **dest);
 
+void free_parsed_data(struct test_file *files, size_t files_count);
+
 #endif
