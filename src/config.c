@@ -510,10 +510,10 @@ int parse_yaml_files(char **files, size_t files_num, struct test_file **dest)
         return -1;
     }
 
-    struct test_file *t_file = malloc(sizeof(struct test_file) * files_num);
-    if(!dest)
+    struct test_file *t_file = calloc(files_num, sizeof(struct test_file));
+    if(!t_file)
     {
-        perror("[parse_yaml_file] malloc failure:");
+        perror("[parse_yaml_file] calloc failure:");
         return -1; 
     }
 
@@ -521,10 +521,14 @@ int parse_yaml_files(char **files, size_t files_num, struct test_file **dest)
     for(size_t i = 0; i < files_num; i++)
     {
         if(parse_file(files[i], t_file, nodes_count) < 0) 
-            return -1;
+            goto error;
         nodes_count++;
     }
 
     *dest = t_file;
     return nodes_count;
+
+error: 
+    free_parsed_data(t_file, nodes_count);
+    return -1; 
 }
