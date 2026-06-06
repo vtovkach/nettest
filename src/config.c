@@ -294,6 +294,10 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
                 perror("[scalar_event] realloc failure:");
                 return -1;
             }
+            memset(
+                temp + test_file->nodes_capacity, 
+                0, (new_capacity - test_file->nodes_capacity) * sizeof(*temp)
+            );
             test_file->nodes = temp;
             test_file->nodes_capacity = new_capacity;
         }
@@ -326,6 +330,11 @@ static int scalar_event(const yaml_event_t *event, parse_state_t *parse_state,
                 perror("[scalar_event] realloc failure:");
                 return -1;
             }
+            memset(
+                temp + test_file->nodes[*cur_node_idx].test_cases_capacity, 
+                0, 
+                (new_capacity - test_file->nodes[*cur_node_idx].test_cases_capacity) * sizeof(*temp)
+            );
             test_file->nodes[*cur_node_idx].test_cases = temp;
             test_file->nodes[*cur_node_idx].test_cases_capacity = new_capacity;
         }
@@ -491,6 +500,7 @@ error:
     fprintf(stderr, "[parse_file] failure\n");
     return -1;
 }
+/*-----------------------------------------------*/
 
 int parse_yaml_files(char **files, size_t files_num, struct test_file **dest)
 {
